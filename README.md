@@ -2,9 +2,6 @@
 
 ## Overview
 
-This repo contains a collections of scripts or containers that I use to manage
-my personal media collection and plug into [Fileflows](https://fileflows.com).
-
 As this interacts with my personal media collection, I've tried to be particularly
 careful to not make any destructive changes to the data hence there a few
 precautions in place.
@@ -35,14 +32,12 @@ Everything is handled from the [`entrypoint.sh`](./dovi_tool/entrypoint.sh) scri
 > **Warning**: This will overwrite the original file if the target profile is found.
 
 ```bash
-#docker run --rm -it -v /path/to/media:/opt/media ghcr.io/riweston/dovi_tool:latest <filename> <profile>
+#docker run --rm -it -v /path/to/media:/opt/media -e PROFILE=dvhe.07 ghcr.io/olsson/dovi_tool:latest 
 
-$ docker run --rm -it -v /path/to/media:/opt/media ghcr.io/riweston/dovi_tool:latest Dune.mkv dvhe.07
+$ docker run --rm -it -v /path/to/media:/opt/media -e PROFILE=dvhe.07 ghcr.io/olsson/dovi_tool:latest
 ```
 
-#### Fileflows
+#### Changes to make this easier to use 
 
-The container is used in conjunction with [Fileflows](https://fileflows.com) to
-manage my media collection. I've written a custom function to incorporate the
-dovi_tool container into a workflow which can be found in
-[`./scripts/Convert-dolbyvision-profile.js`](./scripts/Convert-dolbyvision-profile.js).
+This fork contains changes to allow the Docker container scan the specified folder for MKV files, 
+and to be able to start the script from the Unraid GUI without needing to open the command line.
