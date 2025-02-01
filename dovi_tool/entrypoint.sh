@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 set -eo pipefail
-IFS=$(echo -en "\n\b")
+IFS=$(echo -en "\n")
 
 # Sanity check
 if ! command -v mediainfo >/dev/null 2>&1; then
@@ -37,22 +37,17 @@ if [ ! -d "/opt/media" ]; then
 fi
 
 # Find all .mkv files before starting processing
-mkv_files=()
-while IFS= read -r -d '' mkv_file; do
-    mkv_files+=("$mkv_file")
-done < <(find /opt/media -maxdepth 2 -type f -iname "*.mkv" -print0)
+mkv_files=$(find /opt/media -maxdepth 2 -type f -iname "*.mkv")
 
 # Ensure that we found at least one .mkv file
-if [ ${#mkv_files[@]} -eq 0 ]; then
+if [ -z "$mkv_files" ]; then
     echo "No .mkv files found in /opt/media"
     exit 1
 fi
 
 # Output list of files to be processed
 echo "Files to be processed:"
-for file in "${mkv_files[@]}"; do
-    echo "$file"
-done
+echo "$mkv_files"
 
 echo "Starting processing..."
 
@@ -151,7 +146,7 @@ overwrite_file() {
 main() {
     trap 'echo "Error: $0:$LINENO: Command \`$BASH_COMMAND\` on line $LINENO failed with exit code $?" >&2; cleanup $1' ERR
     
-    for mkv_file in "${mkv_files[@]}"; do
+    echo "$mkv_files" | while IFS= read -r mkv_file; do
         echo "Processing $mkv_file..."
         get_dvhe_profile "$mkv_file" || continue
         demux_file "$mkv_file" || continue
