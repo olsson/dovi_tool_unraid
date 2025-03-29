@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-set -eo pipefail
+set -e
 IFS=$(echo -en "\n")
 
 # Initialize variables for notification
@@ -19,7 +19,7 @@ send_telegram_notification() {
         curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             -d "chat_id=${TELEGRAM_CHAT_ID}" \
             -d "text=${message}" \
-            -d "parse_mode=HTML" > /dev/null
+            -d "parse_mode=HTML" > /dev/null || true
     fi
 }
 
@@ -209,8 +209,6 @@ overwrite_file() {
 }
 
 main() {
-    trap 'echo "Error: $0:$LINENO: Command \`$BASH_COMMAND\` on line $LINENO failed with exit code $?" >&2; cleanup $1' ERR
-    
     TOTAL_FILES=$(echo "$mkv_files" | wc -l)
     
     echo "$mkv_files" | while IFS= read -r mkv_file; do
@@ -244,7 +242,6 @@ main() {
 
     # Send summary to Telegram if enabled
     if [ "$NOTIFICATION_ENABLED" = true ]; then
-        local summary_text
         summary_text=$(print_summary)
         send_telegram_notification "$summary_text"
     fi
