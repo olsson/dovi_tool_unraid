@@ -15,17 +15,22 @@ SKIPPED_FILES_LIST=""
 # Function to send Telegram notification
 send_telegram_notification() {
     if [ "$NOTIFICATION_ENABLED" = true ]; then
-        local message="$1"
-        curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+        message="$1"
+        echo "Sending Telegram notification: $message"
+        response=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             -d "chat_id=${TELEGRAM_CHAT_ID}" \
             -d "text=${message}" \
-            -d "parse_mode=HTML" > /dev/null || true
+            -d "parse_mode=HTML")
+        
+        if [ -n "$response" ]; then
+            echo "Telegram API response: $response"
+        fi
     fi
 }
 
 # Function to print summary
 print_summary() {
-    local summary="🎉 Dolby Vision Conversion Complete!\n\n"
+    summary="🎉 Dolby Vision Conversion Complete!\n\n"
     summary="${summary}📊 Summary:\n"
     summary="${summary}📁 Total files scanned: ${TOTAL_FILES}\n"
     summary="${summary}✅ Successfully processed: ${PROCESSED_FILES}\n"
@@ -48,6 +53,8 @@ print_summary() {
 if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
     NOTIFICATION_ENABLED=true
     echo "Telegram notifications enabled"
+    echo "Bot token: ${TELEGRAM_BOT_TOKEN:0:5}..."
+    echo "Chat ID: ${TELEGRAM_CHAT_ID}"
 else
     echo "Telegram notifications disabled (TELEGRAM_BOT_TOKEN and/or TELEGRAM_CHAT_ID not set)"
 fi
@@ -211,7 +218,8 @@ overwrite_file() {
 main() {
     TOTAL_FILES=$(echo "$mkv_files" | wc -l)
     
-    echo "$mkv_files" | while IFS= read -r mkv_file; do
+    # Process files without using a pipe to avoid subshell issues
+    while IFS= read -r mkv_file; do
         echo "Processing $mkv_file..."
         if [ "$NOTIFICATION_ENABLED" = true ]; then
             send_telegram_notification "🎬 Starting to process: $(basename "$mkv_file")"
@@ -235,7 +243,7 @@ main() {
             fi
         fi
         cleanup "$mkv_file"
-    done
+    done <<< "$mkv_files"
 
     # Print summary to STDOUT
     print_summary
