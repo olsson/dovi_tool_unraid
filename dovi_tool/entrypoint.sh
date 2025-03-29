@@ -1,7 +1,53 @@
 #!/usr/bin/env sh
 
 set -eo pipefail
-IFS=$(echo -en "\n")
+IFS=$(echo -en "\n")
+
+# Initialize variables for notification
+NOTIFICATION_ENABLED=false
+PROCESSED_FILES=0
+FAILED_FILES=0
+SKIPPED_FILES=0
+TOTAL_FILES=0
+FAILED_FILES_LIST=""
+SKIPPED_FILES_LIST=""
+
+# Function to send Telegram notification
+send_telegram_notification() {
+    if [ "$NOTIFICATION_ENABLED" = true ]; then
+        local message="$1"
+        curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "text=${message}" \
+            -d "parse_mode=HTML" > /dev/null
+    fi
+}
+
+# Function to print summary
+print_summary() {
+    local summary="🎉 Dolby Vision Conversion Complete!\n\n"
+    summary+="📊 Summary:\n"
+    summary+="📁 Total files scanned: $TOTAL_FILES\n"
+    summary+="✅ Successfully processed: $PROCESSED_FILES\n"
+    summary+="❌ Failed: $FAILED_FILES\n"
+    summary+="⏭️ Skipped: $SKIPPED_FILES\n"
+    summary+="🎯 Target profile: ${PROFILE}\n\n"
+    
+    if [ -n "$FAILED_FILES_LIST" ]; then
+        summary+="❌ Failed files:\n$FAILED_FILES_LIST\n\n"
+    fi
+    
+    if [ -n "$SKIPPED_FILES_LIST" ]; then
+        summary+="⏭️ Skipped files:\n$SKIPPED_FILES_LIST"
+    fi
+    
+    echo -e "$summary"
+}
+
+# Check if Telegram notifications are enabled
+if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+    NOTIFICATION_ENABLED=true
+fi
 
 # Sanity check
 if ! command -v mediainfo >/dev/null 2>&1; then
@@ -65,6 +111,7 @@ get_dvhe_profile() {
 
     if [ -n "${DVHE_PROFILE}" ]; then
         echo "DVHE ${PROFILE} profile found in $1"
+        return 0
     else
         echo "DVHE ${PROFILE} profile not found in $1. Skipping..."
         return 1
@@ -146,14 +193,31 @@ overwrite_file() {
 main() {
     trap 'echo "Error: $0:$LINENO: Command \`$BASH_COMMAND\` on line $LINENO failed with exit code $?" >&2; cleanup $1' ERR
     
+    TOTAL_FILES=$(echo "$mkv_files" | wc -l)
+    
     echo "$mkv_files" | while IFS= read -r mkv_file; do
         echo "Processing $mkv_file..."
-        get_dvhe_profile "$mkv_file" || continue
-        demux_file "$mkv_file" || continue
-        remux_file "$mkv_file" || continue
-        overwrite_file "$mkv_file" || continue
+        if get_dvhe_profile "$mkv_file"; then
+            if demux_file "$mkv_file" && remux_file "$mkv_file" && overwrite_file "$mkv_file"; then
+                PROCESSED_FILES=$((PROCESSED_FILES + 1))
+            else
+                FAILED_FILES=$((FAILED_FILES + 1))
+                FAILED_FILES_LIST="${FAILED_FILES_LIST}\n• $(basename "$mkv_file")"
+            fi
+        else
+            SKIPPED_FILES=$((SKIPPED_FILES + 1))
+            SKIPPED_FILES_LIST="${SKIPPED_FILES_LIST}\n• $(basename "$mkv_file")"
+        fi
         cleanup "$mkv_file"
     done
+
+    # Print summary to STDOUT
+    print_summary
+
+    # Send summary to Telegram if enabled
+    if [ "$NOTIFICATION_ENABLED" = true ]; then
+        send_telegram_notification "$(print_summary)"
+    fi
 }
 
 main
