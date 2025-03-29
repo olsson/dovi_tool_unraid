@@ -24,6 +24,15 @@ send_telegram_notification() {
         escaped_message=$(escape_markdown "$message")
         echo "Sending Telegram notification: $message"
         
+        # Print masked curl command for debugging
+        masked_token="${TELEGRAM_BOT_TOKEN:0:5}..."
+        masked_chat_id="${TELEGRAM_CHAT_ID:0:4}..."
+        echo "Debug - Curl command (with masked tokens):"
+        echo "curl -s -X POST \\"
+        echo "    -H 'Content-Type: application/json' \\"
+        echo "    -d '{\"chat_id\": \"${masked_chat_id}\", \"parse_mode\": \"MarkdownV2\", \"text\": \"${escaped_message}\", \"disable_notification\": false}' \\"
+        echo "    'https://api.telegram.org/bot${masked_token}/sendMessage'"
+        
         response=$(curl -s -X POST \
             -H 'Content-Type: application/json' \
             -d "{\"chat_id\": \"${TELEGRAM_CHAT_ID}\", \"parse_mode\": \"MarkdownV2\", \"text\": \"${escaped_message}\", \"disable_notification\": false}" \
