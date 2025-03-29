@@ -244,7 +244,9 @@ main() {
 
     # Send summary to Telegram if enabled
     if [ "$NOTIFICATION_ENABLED" = true ]; then
-        send_telegram_notification "$(print_summary)"
+        local summary_text
+        summary_text=$(print_summary)
+        send_telegram_notification "$summary_text"
     fi
 }
 
