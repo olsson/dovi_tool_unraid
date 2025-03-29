@@ -23,6 +23,7 @@ send_telegram_notification() {
         message="$1"
         escaped_message=$(escape_markdown "$message")
         echo "Sending Telegram notification: $message"
+        echo "Escaped message: $escaped_message"
         
         # Print masked curl command for debugging
         masked_token="*****"
