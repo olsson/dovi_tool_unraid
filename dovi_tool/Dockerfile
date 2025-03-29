@@ -2,7 +2,7 @@ FROM alpine:3.21
 ARG DOVI_TOOL_VERSION=2.1.3
 ARG DOVI_TOOL_ARCH=x86_64-unknown-linux-musl
 
-LABEL org.opencontainers.image.description="This image provides a containerized version of the dovi_tool for use with Fileflows to convert Dolby Vision profile 7 to profile 8."
+LABEL org.opencontainers.image.description "This image provides a containerized version of the dovi_tool for use with Fileflows to convert Dolby Vision profile 7 to profile 8."
 
 RUN apk add --no-cache mediainfo jq curl
 RUN apk add mkvtoolnix --repository http://dl-3.alpinelinux.org/alpine/edge/main
@@ -22,4 +22,4 @@ WORKDIR /opt/media
 ENV TELEGRAM_BOT_TOKEN=""
 ENV TELEGRAM_CHAT_ID=""
 
-ENTRYPOINT ["/usr/bin/entrypoint.sh"]
+ENTRYPOINT ["entrypoint.sh"]
