@@ -14,7 +14,7 @@ SKIPPED_FILES_LIST=""
 
 # Function to escape special characters for MarkdownV2
 escape_markdown() {
-    echo "$1" | sed 's/[_\*\[\]()~`>#+=|{}.!-]/\\&/g' | sed 's/\([()]\)/\\\1/g'
+    echo "$1" | sed 's/_//g' | sed 's/[\[\]()~`>#+=|{}.!-]/\\\\&/g'
 }
 
 # Function to send Telegram notification
