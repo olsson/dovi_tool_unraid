@@ -18,15 +18,15 @@ send_telegram_notification() {
         message="$1"
         echo "Sending Telegram notification: $message"
         
-        response=$(curl -s -X POST \
+        # Use -v for verbose output and capture both stdout and stderr
+        response=$(curl -v -X POST \
             --url "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             --header 'accept: application/json' \
             --header 'content-type: application/json' \
-            --data "{\"chat_id\": \"${TELEGRAM_CHAT_ID}\", \"text\": \"${message}\", \"disable_notification\": false}" || true)
+            --data "{\"chat_id\": \"${TELEGRAM_CHAT_ID}\", \"text\": \"${message}\", \"disable_notification\": false}" 2>&1 || true)
         
-        if [ -n "$response" ]; then
-            echo "Telegram API response: $response"
-        fi
+        echo "Debug - Full curl response:"
+        echo "$response"
         
         # Add a small delay to ensure the notification is sent
         sleep 1
