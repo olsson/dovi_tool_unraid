@@ -218,7 +218,10 @@ overwrite_file() {
 main() {
     TOTAL_FILES=$(echo "$mkv_files" | wc -l)
     
-    # Process files without using a pipe to avoid subshell issues
+    # Create a temporary file with the list of files
+    echo "$mkv_files" > /tmp/mkv_files.txt
+    
+    # Process files from the temporary file
     while IFS= read -r mkv_file; do
         echo "Processing $mkv_file..."
         if [ "$NOTIFICATION_ENABLED" = true ]; then
@@ -243,7 +246,10 @@ main() {
             fi
         fi
         cleanup "$mkv_file"
-    done <<< "$mkv_files"
+    done < /tmp/mkv_files.txt
+
+    # Clean up the temporary file
+    rm -f /tmp/mkv_files.txt
 
     # Print summary to STDOUT
     print_summary
