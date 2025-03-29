@@ -18,25 +18,18 @@ send_telegram_notification() {
         message="$1"
         echo "Sending Telegram notification: $message"
         
-        # Print masked curl command for debugging
-        masked_token="*****"
-        masked_chat_id="*****"
-        echo "Debug - Curl command (with masked tokens):"
-        echo "curl -s -X POST \\"
-        echo "    --url \"https://api.telegram.org/bot${masked_token}/sendMessage\" \\"
-        echo "    --header 'accept: application/json' \\"
-        echo "    --header 'content-type: application/json' \\"
-        echo "    --data '{\"chat_id\": \"${masked_chat_id}\", \"text\": \"${message}\", \"disable_notification\": false}'"
-        
         response=$(curl -s -X POST \
             --url "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             --header 'accept: application/json' \
             --header 'content-type: application/json' \
-            --data "{\"chat_id\": \"${TELEGRAM_CHAT_ID}\", \"text\": \"${message}\", \"disable_notification\": false}")
+            --data "{\"chat_id\": \"${TELEGRAM_CHAT_ID}\", \"text\": \"${message}\", \"disable_notification\": false}" || true)
         
         if [ -n "$response" ]; then
             echo "Telegram API response: $response"
         fi
+        
+        # Add a small delay to ensure the notification is sent
+        sleep 1
     fi
 }
 
