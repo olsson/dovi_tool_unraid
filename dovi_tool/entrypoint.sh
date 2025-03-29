@@ -14,7 +14,7 @@ SKIPPED_FILES_LIST=""
 
 # Function to escape special characters for MarkdownV2
 escape_markdown() {
-    echo "$1" | sed 's/[_\*\[\]()~`>#+=|{}.!-]/\\&/g'
+    echo "$1" | sed 's/[_\*\[\]()~`>#+=|{}.!-]/\\&/g' | sed 's/\([()]\)/\\\1/g'
 }
 
 # Function to send Telegram notification
@@ -25,8 +25,8 @@ send_telegram_notification() {
         echo "Sending Telegram notification: $message"
         
         # Print masked curl command for debugging
-        masked_token="${TELEGRAM_BOT_TOKEN:0:5}..."
-        masked_chat_id="${TELEGRAM_CHAT_ID:0:4}..."
+        masked_token="*****"
+        masked_chat_id="*****"
         echo "Debug - Curl command (with masked tokens):"
         echo "curl -s -X POST \\"
         echo "    -H 'Content-Type: application/json' \\"
