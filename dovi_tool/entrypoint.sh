@@ -12,15 +12,22 @@ TOTAL_FILES=0
 FAILED_FILES_LIST=""
 SKIPPED_FILES_LIST=""
 
+# Function to escape special characters for MarkdownV2
+escape_markdown() {
+    echo "$1" | sed 's/[_\*\[\]()~`>#+=|{}.!-]/\\&/g'
+}
+
 # Function to send Telegram notification
 send_telegram_notification() {
     if [ "$NOTIFICATION_ENABLED" = true ]; then
         message="$1"
+        escaped_message=$(escape_markdown "$message")
         echo "Sending Telegram notification: $message"
-        response=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            -d "chat_id=${TELEGRAM_CHAT_ID}" \
-            -d "text=${message}" \
-            -d "parse_mode=HTML")
+        
+        response=$(curl -s -X POST \
+            -H 'Content-Type: application/json' \
+            -d "{\"chat_id\": \"${TELEGRAM_CHAT_ID}\", \"parse_mode\": \"MarkdownV2\", \"text\": \"${escaped_message}\", \"disable_notification\": false}" \
+            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage")
         
         if [ -n "$response" ]; then
             echo "Telegram API response: $response"
