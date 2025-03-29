@@ -11,8 +11,7 @@ RUN tar -xvf /tmp/dovi_tool-${DOVI_TOOL_VERSION}-${DOVI_TOOL_ARCH}.tar.gz -C /us
 RUN mkdir /opt/media
 
 COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
-COPY ./docker-entrypoint.sh /usr/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh /usr/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 COPY ./dovi_tool.config.json /config/dovi_tool.config.json
 
